@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>I-FARM</title>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.6.1/p5.js"></script>
+
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.6.1/addons/p5.dom.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.6.1/addons/p5.sound.js"></script>
+
+    <script type="text/javascript" src="sketch.js"></script>
+    <script type="text/javascript" src="usuario.js"></script>
+    <script type="text/javascript" src="fazenda.js"></script>
+    <script type="text/javascript" src="construcao.js"></script>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.2.0/socket.io.js"></script>
+
+  </head>
+  <body>
+    <style>
+        *{
+            margin:0;
+            padding:0;
+        }
+    </style>
+    <script>
+        var socket = io();
+        var cellSize = 50;
+        var cols = 10;
+        var rows = 10;
+        
+        var fazenda = new Fazenda();
+        
+        function setup(){
+            var cnv = createCanvas(cols * cellSize + 1, (rows * (cellSize - 1)) + 2);
+//            frameRate(1);
+
+            let posx = (window.innerWidth - cnv.width) / 2;
+            let posy = (window.innerHeight - cnv.height) / 2;
+
+            cnv.position(posx, posy);
+        }
+        
+        function draw(){
+            fazenda.show();
+        }
+
+        function mousePressed(){
+            fazenda.inserirConstrucao(mouseX, mouseY);
+        }
+    </script>
+  </body>
+</html>

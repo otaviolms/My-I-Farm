@@ -1,0 +1,18 @@
+/*
+    ATRIBUTOS DO USUÁRIO
+    
+    NOME DO USUÁRIO
+    NOME DA FAZENDA
+    PRÓXIMO BAÚ
+    FAZ PARTE DE UMA VIZINHANÇA?
+    NOME DA VIZINHANÇA
+    GRADE DA FAZENDA
+    MOEDAS
+    GEMAS
+    EXP
+    LEVEL
+    RECURSOS
+        - TRIGO
+        - MILHO
+*/
+
