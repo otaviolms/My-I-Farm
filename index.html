@@ -9,44 +9,203 @@
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.6.1/addons/p5.sound.js"></script>
 
     <script type="text/javascript" src="sketch.js"></script>
+    <script type="text/javascript" src="planta.js"></script>
+    <script type="text/javascript" src="plantacao.js"></script>
     <script type="text/javascript" src="usuario.js"></script>
-    <script type="text/javascript" src="fazenda.js"></script>
-    <script type="text/javascript" src="construcao.js"></script>
+    <script type="text/javascript" src="interface.js"></script>
+    <script type="text/javascript" src="botao.js"></script>
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.2.0/socket.io.js"></script>
 
   </head>
   <body>
     <style>
-        *{
-            margin:0;
-            padding:0;
+        body {
+            padding: 0;
+            margin: 0px;
+            overflow: hidden;
         }
     </style>
     <script>
-        var socket = io();
-        var cellSize = 50;
-        var cols = 10;
-        var rows = 10;
+        var cnv;
         
-        var fazenda = new Fazenda();
+        var plantacao;
+        var scale;
+        var scaleMax;
+        var scaleMin;
+        
+        var sizeX = 6;
+        var sizeY = 8;
+        
+        var tltX;
+        var tltY;
+        
+        var cnvSize = 500;
+        
+        var interface;
+        var usuario;
+        
+        var tool;
+        var dragObj;
+        var obj;
+        
+        var initMX;
+        var initMY;
+        
+        var grain;
+        var rake;
+        var shovel;
+        var sprout;
+        
+        function preload() {
+            grain = loadImage('https://image.flaticon.com/icons/svg/992/992768.svg');
+            rake = loadImage('https://image.flaticon.com/icons/svg/2067/2067456.svg');
+            shovel = loadImage('https://image.flaticon.com/icons/svg/2067/2067523.svg');
+            sprout = loadImage('https://image.flaticon.com/icons/svg/346/346195.svg');
+        }
         
         function setup(){
-            var cnv = createCanvas(cols * cellSize + 1, (rows * (cellSize - 1)) + 2);
-//            frameRate(1);
-
-            let posx = (window.innerWidth - cnv.width) / 2;
-            let posy = (window.innerHeight - cnv.height) / 2;
-
-            cnv.position(posx, posy);
+            cnv = createCanvas(window.innerWidth, window.innerHeight);
+            
+            tltX = window.innerWidth / 2;
+            tltY = window.innerHeight / 2;
+            
+            usuario = new Usuario('Otavio');
+            interface = new Interface(usuario);
+            
+            scale = 60;
+            scaleMax = 80;
+            scaleMin = 20;
+            
+            objX = -1;
+            objY = -1;
+            
+            tool = -1;
+            
+            plantacao = new Plantacao(sizeX, sizeY);
         }
         
         function draw(){
-            fazenda.show();
+            background(200);
+            push();
+            translate(tltX, tltY);
+            plantacao.show(scale);
+            pop();
+            interface.show();
+            
+            if(dragObj){
+                push();
+                fill(200);
+                translate(-15,-15);
+                switch(tool){
+                    case '0':
+                    default:
+                        image(shovel, mouseX, mouseY, 30, 30);
+                        break;
+                    case '1':
+                        image(grain, mouseX, mouseY, 30, 30);
+                        break;
+                    case '2':
+                        image(shovel, mouseX, mouseY, 30, 30);
+                        break;
+                    case '3':
+                        image(sprout, mouseX, mouseY, 30, 30);
+                        break;
+                }
+                pop();
+            } else if(objX != -1 && objY != -1){
+                push();
+                fill(200);
+                translate(-15,-15);
+                rect(objX, objY, 30, 30, 15);
+                pop();
+                
+                
+                let cell = plantacao.intersect(objX - tltX, objY - tltY);
+                if(cell != false){
+                    switch(tool){
+                        case '0':
+                        default:
+                            plantacao.setState(cell.i, cell.j, 0);
+                            break;
+                        case '1':
+                            plantacao.setState(cell.i, cell.j, 1);
+                            break;
+                        case '2':
+                            break;
+                        case '3':
+                            break;
+                    }
+                }
+                objX = -1;
+                objY = -1;
+            }
         }
-
-        function mousePressed(){
-            fazenda.inserirConstrucao(mouseX, mouseY);
+        
+        function mouseWheel(event) {
+            if(event.deltaY > 0){
+                if(scale < scaleMax){
+                    scale += event.deltaY * 0.1;
+                }
+            } else {
+                if(scale > scaleMin){
+                    scale += event.deltaY * 0.1;
+                }
+            }
+            
+            console.log(scale);
+        }
+        
+        function mousePressed() {
+            let botaoAtivo = -1;
+            for(let i in interface.botoes){
+                if(interface.botoes[i].intersect(mouseX, mouseY)){
+                    botaoAtivo = i;
+                    break;
+                }
+            }
+            
+            if(botaoAtivo != -1){
+                interface.botoes[botaoAtivo].active = true;
+                tool = botaoAtivo;
+                dragObj = true;
+            } else {
+                initMX = mouseX;
+                initMY = mouseY;
+                tool = -1;
+            }
+        }
+        
+        
+        function mouseReleased() {
+            for(let i in interface.botoes){
+                interface.botoes[i].desativar();
+            }
+            
+            if(dragObj && tool != -1){
+                dragObj = false;
+                objX = mouseX;
+                objY = mouseY;
+            } else {
+                dragObj = false;
+            }
+        }
+        
+        function mouseDragged() {
+            if(!dragObj){
+                tltX = mouseX;
+                tltY = mouseY;
+            }
+        }
+        
+//        FUNÇÕES COMUNS
+        
+        function make2DArray(cols, rows){
+            let arr = new Array(cols);
+            for(let i = 0; i < arr.length; i++){
+                arr[i] = new Array(rows);
+            }
+            return arr;
         }
     </script>
   </body>
