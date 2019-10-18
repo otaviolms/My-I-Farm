@@ -212,4 +212,5 @@ function make2DArray(cols, rows){
     }
 
     return arr;
+    }
 }
